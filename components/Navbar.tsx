@@ -13,7 +13,7 @@ export const Navbar: React.FC<NavbarProps> = ({ isDark, toggleTheme }) => {
   const [scrollProgress, setScrollProgress] = useState(0);
 
   const resumeUrl =
-    'https://drive.google.com/file/d/1Tm4ojEXCzPUJ2geE9QgNiu8L-rNtMecc/view?usp=drivesdk';
+    'https://drive.google.com/file/d/1IGvRUl6YphAC4rl_E677N1KZBc5q9NoF/view?usp=drivesdk';
 
   useEffect(() => {
     const handleScroll = () => {
