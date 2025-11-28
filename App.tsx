@@ -1,36 +1,43 @@
 import React, { useState, useEffect } from 'react';
-import { Navbar } from './components/Navbar';
-import { Hero } from './components/Hero';
-import { Education } from './components/Education';
-import { Experience } from './components/Experience';
-import { Projects } from './components/Projects';
-import { Skills } from './components/Skills';
-import { Contact } from './components/Contact';
+import Navbar from './components/Navbar';
+import Hero from './components/Hero';
+import About from './components/About';
+import Projects from './components/Projects';
+import Contact from './components/Contact';
 
 function App() {
-  const [isDark, setIsDark] = useState(true);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
-    if (isDark) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [isDark]);
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePosition({ x: e.clientX, y: e.clientY });
+    };
 
-  const toggleTheme = () => setIsDark(!isDark);
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-300 font-sans">
-      <Navbar isDark={isDark} toggleTheme={toggleTheme} />
-      <main>
+    <div className="relative min-h-screen bg-obsidian-bg text-obsidian-text selection:bg-obsidian-accent selection:text-black overflow-x-hidden">
+      {/* Global Noise Overlay */}
+      <div className="bg-noise" />
+
+      {/* Spotlight Effect */}
+      <div 
+        className="pointer-events-none fixed inset-0 z-30 transition-opacity duration-300"
+        style={{
+          background: `radial-gradient(600px circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(255,255,255,0.06), transparent 40%)`
+        }}
+      />
+      
+      <Navbar />
+      
+      <main className="relative z-10">
         <Hero />
-        <Education />
-        <Experience />
+        <About />
         <Projects />
-        <Skills />
+        <Contact />
       </main>
-      <Contact />
     </div>
   );
 }

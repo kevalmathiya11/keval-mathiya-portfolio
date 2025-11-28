@@ -1,202 +1,93 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, Terminal, Sun, Moon, Download } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Home, User, Briefcase, Mail } from 'lucide-react';
 
-interface NavbarProps {
-  isDark: boolean;
-  toggleTheme: () => void;
-}
+const Navbar = () => {
+  const [activeSection, setActiveSection] = useState('hero');
 
-export const Navbar: React.FC<NavbarProps> = ({ isDark, toggleTheme }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState('home');
-  const [scrolled, setScrolled] = useState(false);
-  const [scrollProgress, setScrollProgress] = useState(0);
-
-  const resumeUrl =
-    'https://drive.google.com/file/d/1IGvRUl6YphAC4rl_E677N1KZBc5q9NoF/view?usp=drivesdk';
+  const links = [
+    { name: "Hero", icon: <Home size={20} />, id: "hero" },
+    { name: "About", icon: <User size={20} />, id: "experience" },
+    { name: "Work", icon: <Briefcase size={20} />, id: "projects" },
+    { name: "Contact", icon: <Mail size={20} />, id: "contact" },
+  ];
 
   useEffect(() => {
     const handleScroll = () => {
-      // Active section logic
-      const sections = [
-        'home',
-        'education',
-        'experience',
-        'projects',
-        'skills',
-        'contact',
-      ];
-      const scrollPosition = window.scrollY + 100;
-
-      for (const section of sections) {
-        const element = document.getElementById(section);
-        if (element) {
-          const { offsetTop, offsetHeight } = element;
-          if (
-            scrollPosition >= offsetTop &&
-            scrollPosition < offsetTop + offsetHeight
-          ) {
-            setActiveSection(section);
-          }
+      // Determine which section is currently active
+      const scrollPosition = window.scrollY + window.innerHeight * 0.3; // Offset for better triggering
+      
+      for (const link of links) {
+        const section = document.getElementById(link.id);
+        if (section) {
+            const top = section.offsetTop;
+            const height = section.offsetHeight;
+            if (scrollPosition >= top && scrollPosition < top + height) {
+                setActiveSection(link.id);
+            }
         }
       }
-
-      // Navbar appearance logic
-      setScrolled(window.scrollY > 20);
-
-      // Scroll progress logic
-      const totalScroll = document.documentElement.scrollTop;
-      const windowHeight =
-        document.documentElement.scrollHeight -
-        document.documentElement.clientHeight;
-      const scroll = `${totalScroll / windowHeight}`;
-      setScrollProgress(Number(scroll));
     };
 
     window.addEventListener('scroll', handleScroll);
+    handleScroll(); // Check on mount
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const navLinks = [
-    { name: 'Home', href: '#home', id: 'home' },
-    { name: 'Education', href: '#education', id: 'education' },
-    { name: 'Experience', href: '#experience', id: 'experience' },
-    { name: 'Projects', href: '#projects', id: 'projects' },
-    { name: 'Skills', href: '#skills', id: 'skills' },
-  ];
+  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+    e.preventDefault();
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+      setActiveSection(id);
+    }
+  };
 
   return (
-    <>
-      <nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'py-3' : 'py-5'}`}
+    <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100]">
+      <motion.nav
+        initial={{ y: 100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 1.5, duration: 0.8, type: "spring" }}
+        className="flex items-center gap-1 p-2 bg-white/5 backdrop-blur-2xl border border-white/10 rounded-full shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] ring-1 ring-white/5"
       >
-        <div
-          className="absolute top-0 left-0 h-[3px] bg-blue-600 dark:bg-blue-500 z-50 transition-all duration-100"
-          style={{ width: `${scrollProgress * 100}%` }}
-        ></div>
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div
-            className={`
-            relative backdrop-blur-md border transition-all duration-300 rounded-2xl px-6 py-3 flex justify-between items-center
-            ${
-              scrolled
-                ? 'bg-white/80 dark:bg-slate-900/80 border-slate-200 dark:border-slate-700 shadow-lg'
-                : 'bg-transparent border-transparent'
-            }
-          `}
-          >
-            <a
-              href="#home"
-              className="flex items-center gap-2 group relative z-10"
-            >
-              <div className="p-2 bg-blue-600 rounded-lg text-white transform group-hover:rotate-12 transition-transform duration-300 shadow-lg shadow-blue-500/20">
-                <Terminal className="w-5 h-5" />
-              </div>
-              <span className="font-bold text-xl tracking-tight text-slate-800 dark:text-slate-100">
-                Keval
-                <span className="text-blue-600 dark:text-blue-400">.dev</span>
-              </span>
-            </a>
-
-            {/* Desktop Nav */}
-            <div className="hidden md:flex items-center gap-1 bg-slate-100/50 dark:bg-slate-800/50 p-1.5 rounded-full border border-slate-200 dark:border-slate-700 backdrop-blur-md">
-              {navLinks.map((link) => (
-                <a
-                  key={link.name}
-                  href={link.href}
-                  className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-300 relative overflow-hidden ${
-                    activeSection === link.id
-                      ? 'text-white bg-blue-600 shadow-md'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700/50'
-                  }`}
-                >
-                  {link.name}
-                </a>
-              ))}
-            </div>
-
-            <div className="hidden md:flex items-center gap-3">
-              <button
-                onClick={toggleTheme}
-                className="p-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                aria-label="Toggle Theme"
-              >
-                {isDark ? (
-                  <Sun className="w-5 h-5" />
-                ) : (
-                  <Moon className="w-5 h-5" />
-                )}
-              </button>
-
-              <a
-                href={resumeUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-bold rounded-xl hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
-              >
-                <Download className="w-4 h-4" />
-                Resume
-              </a>
-            </div>
-
-            {/* Mobile Toggle */}
-            <div className="flex items-center gap-4 md:hidden">
-              <button
-                onClick={toggleTheme}
-                className="p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
-              >
-                {isDark ? (
-                  <Sun className="w-5 h-5" />
-                ) : (
-                  <Moon className="w-5 h-5" />
-                )}
-              </button>
-
-              <button
-                onClick={() => setIsOpen(!isOpen)}
-                className="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
-              >
-                {isOpen ? (
-                  <X className="w-6 h-6" />
-                ) : (
-                  <Menu className="w-6 h-6" />
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* Mobile Menu Overlay */}
-      <div
-        className={`fixed inset-0 bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl z-40 transition-transform duration-500 cubic-bezier(0.4, 0, 0.2, 1) md:hidden ${
-          isOpen ? 'translate-y-0' : '-translate-y-full'
-        }`}
-      >
-        <div className="flex flex-col items-center justify-center h-full space-y-8 p-4">
-          {navLinks.map((link) => (
-            <a
-              key={link.name}
-              href={link.href}
-              className="text-3xl font-bold text-slate-800 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-              onClick={() => setIsOpen(false)}
-            >
-              {link.name}
-            </a>
-          ))}
+        {links.map((link) => (
           <a
-            href={resumeUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-8 px-8 py-4 bg-blue-600 text-white text-lg font-bold rounded-xl shadow-xl hover:bg-blue-700 transition-all flex items-center gap-2"
-            onClick={() => setIsOpen(false)}
+            key={link.name}
+            href={`#${link.id}`}
+            onClick={(e) => handleClick(e, link.id)}
+            className={`relative p-3 rounded-full transition-all duration-300 group ${
+                activeSection === link.id 
+                ? "text-white bg-white/10 shadow-[inset_0_0_20px_rgba(255,255,255,0.05)]" 
+                : "text-gray-400 hover:text-white hover:bg-white/5"
+            }`}
           >
-            <Download className="w-5 h-5" />
-            Download Resume
+            {link.icon}
+            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 px-3 py-1 text-xs bg-black/90 backdrop-blur border border-white/10 rounded-lg text-white opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none transform translate-y-2 group-hover:translate-y-0 duration-200">
+              {link.name}
+            </span>
+            
+            {activeSection === link.id && (
+                <motion.span 
+                  layoutId="activeDot"
+                  className="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-1 h-1 bg-obsidian-accent rounded-full shadow-[0_0_8px_#00f0ff]" 
+                />
+            )}
           </a>
+        ))}
+        
+        <div className="w-[1px] h-6 bg-white/10 mx-2" />
+        
+        <div className="flex items-center gap-2 px-3 pr-4">
+            <div className="relative">
+                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <div className="absolute inset-0 w-2 h-2 rounded-full bg-emerald-500 blur-sm animate-pulse" />
+            </div>
+            <span className="text-[10px] font-mono text-gray-400 tracking-wider">ONLINE</span>
         </div>
-      </div>
-    </>
+      </motion.nav>
+    </div>
   );
 };
+
+export default Navbar;

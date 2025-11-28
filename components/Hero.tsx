@@ -1,127 +1,280 @@
-import React from 'react';
-import {
-  MapPin,
-  Linkedin,
-  Github,
-  ArrowRight,
-  ChevronDown,
-  Download,
-} from 'lucide-react';
-import { CONTACT_INFO } from '../constants';
+import React, { useEffect, useRef } from 'react';
+import { motion, Variants } from 'framer-motion';
+import { Github, Linkedin, Mail } from 'lucide-react';
+import { HERO_DATA, SOCIAL_LINKS } from '../constants';
 
-export const Hero: React.FC = () => {
-  const resumeUrl =
-    'https://drive.google.com/file/d/1IGvRUl6YphAC4rl_E677N1KZBc5q9NoF/view?usp=drivesdk';
+// Smart Minimal Text Component
+interface SmartTextProps {
+  text: string;
+}
+
+const SmartText: React.FC<SmartTextProps> = ({ text }) => {
+  const letters = text.split("");
+
+  const containerVariants: Variants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.05, delayChildren: 0.2 }
+    },
+    hover: {
+      transition: { staggerChildren: 0.03 }
+    }
+  };
+
+  const letterVariants: Variants = {
+    hidden: {
+      y: 40,
+      opacity: 0,
+      filter: "blur(10px)"
+    },
+    visible: {
+      y: 0,
+      opacity: 1,
+      filter: "blur(0px)",
+      transition: {
+        type: "spring",
+        damping: 12,
+        stiffness: 100
+      }
+    },
+    hover: {
+      y: -5,
+      color: "#00f0ff", // Obsidian Accent
+      textShadow: "0 0 15px rgba(0, 240, 255, 0.6)",
+      transition: { type: "spring", damping: 10, stiffness: 200 }
+    }
+  };
 
   return (
-    <section
-      id="home"
-      className="relative min-h-screen flex items-center pt-20 pb-20 overflow-hidden bg-slate-50 dark:bg-slate-950 transition-colors duration-300"
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      whileHover="hover"
+      className="flex flex-wrap justify-center cursor-default select-none"
     >
-      {/* Dynamic Background Decor */}
-      <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-400/30 dark:bg-blue-600/20 rounded-full mix-blend-multiply filter blur-[128px] opacity-70 animate-blob"></div>
-        <div className="absolute top-0 right-1/4 w-96 h-96 bg-purple-400/30 dark:bg-purple-600/20 rounded-full mix-blend-multiply filter blur-[128px] opacity-70 animate-blob animation-delay-2000"></div>
-        <div className="absolute -bottom-32 left-1/3 w-96 h-96 bg-indigo-400/30 dark:bg-indigo-600/20 rounded-full mix-blend-multiply filter blur-[128px] opacity-70 animate-blob animation-delay-4000"></div>
-      </div>
+      {letters.map((char, i) => (
+        <motion.span
+          key={i}
+          variants={letterVariants}
+          className="inline-block"
+        >
+          {char === " " ? "\u00A0" : char}
+        </motion.span>
+      ))}
+    </motion.div>
+  );
+};
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full relative z-10 pb-20 md:pb-0">
-        <div className="max-w-4xl mx-auto text-center md:text-left">
-          <div className="inline-flex items-center gap-2 px-3 py-1 mt-10 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700/50 rounded-full text-blue-700 dark:text-blue-300 text-sm font-medium mb-8 animate-fade-up shadow-sm hover:shadow-md transition-all cursor-default">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-500 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600 dark:bg-blue-400"></span>
-            </span>
-            Available for new projects
+const Hero = () => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let width = window.innerWidth;
+    let height = window.innerHeight;
+    canvas.width = width;
+    canvas.height = height;
+
+    // Grid configuration
+    const gap = 40;
+
+    class Point {
+      x: number;
+      y: number;
+      originX: number;
+      originY: number;
+      vx: number;
+      vy: number;
+      force: number;
+
+      constructor(x: number, y: number) {
+        this.x = x;
+        this.y = y;
+        this.originX = x;
+        this.originY = y;
+        this.vx = 0;
+        this.vy = 0;
+        this.force = 0;
+      }
+
+      update(mouse: { x: number, y: number }) {
+        const dx = mouse.x - this.x;
+        const dy = mouse.y - this.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        const forceDistance = 200;
+
+        let force = 0;
+        let angle = 0;
+
+        if (distance < forceDistance) {
+          force = (forceDistance - distance) / forceDistance;
+          angle = Math.atan2(dy, dx);
+          const push = -force * 20; // Repulsion strength
+
+          this.vx += Math.cos(angle) * push;
+          this.vy += Math.sin(angle) * push;
+        }
+
+        // Spring back to origin
+        this.vx += (this.originX - this.x) * 0.05;
+        this.vy += (this.originY - this.y) * 0.05;
+
+        // Friction
+        this.vx *= 0.9;
+        this.vy *= 0.9;
+
+        this.x += this.vx;
+        this.y += this.vy;
+      }
+
+      draw() {
+        if (!ctx) return;
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.15)'; // Dot color
+        ctx.fillRect(this.x, this.y, 2, 2);
+      }
+    }
+
+    const points: Point[] = [];
+
+    // Initialize grid
+    for (let x = 0; x < width; x += gap) {
+      for (let y = 0; y < height; y += gap) {
+        points.push(new Point(x, y));
+      }
+    }
+
+    let mouse = { x: -1000, y: -1000 };
+
+    window.addEventListener('mousemove', (e) => {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+    });
+
+    const animate = () => {
+      ctx.fillStyle = '#050505'; // Clear background
+      ctx.fillRect(0, 0, width, height);
+
+      points.forEach(p => {
+        p.update(mouse);
+        p.draw();
+      });
+
+      requestAnimationFrame(animate);
+    };
+
+    const animationId = requestAnimationFrame(animate);
+
+    const handleResize = () => {
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = width;
+      canvas.height = height;
+
+      // Re-init grid
+      points.length = 0;
+      for (let x = 0; x < width; x += gap) {
+        for (let y = 0; y < height; y += gap) {
+          points.push(new Point(x, y));
+        }
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      cancelAnimationFrame(animationId);
+    };
+  }, []);
+
+  const iconMap: Record<string, React.ReactNode> = {
+    Github: <Github size={20} />,
+    Linkedin: <Linkedin size={20} />,
+    Mail: <Mail size={20} />
+  };
+
+  // Split name for responsive layout
+  const nameParts = HERO_DATA.name.toUpperCase().split(' ');
+
+  return (
+    <section id="hero" className="relative h-screen w-full flex flex-col items-center justify-center overflow-hidden">
+      <canvas
+        ref={canvasRef}
+        className="absolute inset-0 z-0 pointer-events-none"
+      />
+
+      {/* Vignette */}
+      <div className="absolute inset-0 bg-radial-gradient from-transparent to-obsidian-bg pointer-events-none" />
+
+      <div className="z-10 text-center px-4 max-w-5xl mx-auto space-y-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="flex flex-col items-center"
+        >
+          <div className="mb-8 p-1 rounded-full bg-gradient-to-r from-transparent via-obsidian-border to-transparent w-full max-w-xs">
+            <div className="bg-obsidian-bg/80 backdrop-blur border border-obsidian-border rounded-full px-4 py-1 text-xs font-display tracking-widest text-obsidian-accent uppercase">
+              System Online // Ready for Output
+            </div>
           </div>
 
-          <h1
-            className="text-5xl md:text-7xl lg:text-8xl font-bold text-slate-900 dark:text-slate-100 tracking-tight leading-[1.1] mb-8 animate-fade-up"
-            style={{ animationDelay: '0.1s' }}
-          >
-            Building Digital <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 dark:from-blue-400 dark:via-indigo-400 dark:to-purple-400 animate-gradient-x">
-              Experiences
-            </span>
+          <h1 className="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-6 text-5xl sm:text-6xl md:text-8xl lg:text-9xl font-bold tracking-tighter text-white mb-4 font-display">
+            {nameParts.map((part, index) => (
+              <SmartText key={index} text={part} />
+            ))}
           </h1>
 
-          <p
-            className="text-xl text-slate-600 dark:text-slate-400 leading-relaxed mb-10 max-w-2xl mx-auto md:mx-0 animate-fade-up"
-            style={{ animationDelay: '0.2s' }}
-          >
-            Hi, I'm{' '}
-            <span className="font-bold text-slate-900 dark:text-slate-100 relative inline-block">
-              Keval Mathiya
-              <span className="absolute bottom-0 left-0 w-full h-1 bg-blue-500/30 dark:bg-blue-500/50 rounded-full"></span>
-            </span>
-            . A Full-Stack Developer creating fast, accessible, and user-centric
-            web applications with modern technologies.
-          </p>
+          <h2 className="text-xl md:text-2xl text-gray-400 font-light tracking-widest uppercase mb-8">
+            <span className="text-obsidian-accent">/</span> {HERO_DATA.title}
+          </h2>
 
-          <div
-            className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-4 animate-fade-up"
-            style={{ animationDelay: '0.3s' }}
-          >
+          <p className="text-lg text-gray-400 max-w-xl mx-auto leading-relaxed border-l-2 border-obsidian-accent/50 pl-6 text-left">
+            {HERO_DATA.tagline}
+          </p>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.8, duration: 1 }}
+          className="flex gap-6 justify-center pt-8"
+        >
+          {SOCIAL_LINKS.map((link) => (
             <a
-              href="#projects"
-              className="w-full sm:w-auto px-8 py-4 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 hover:-translate-y-1 transition-all shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 group"
-            >
-              View My Work
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </a>
-            <a
-              href={resumeUrl}
+              key={link.platform}
+              href={link.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full sm:w-auto px-8 py-4 bg-white dark:bg-slate-800 text-slate-700 dark:text-white font-medium rounded-xl border border-slate-200 dark:border-slate-700 hover:border-blue-500/50 hover:shadow-lg hover:-translate-y-1 transition-all flex items-center justify-center gap-2"
+              className="group relative p-4"
             >
-              <Download className="w-4 h-4" />
-              Resume
+              <div className="absolute inset-0 bg-obsidian-accent/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="relative z-10 text-gray-400 group-hover:text-white transition-colors duration-300">
+                {iconMap[link.icon]}
+              </div>
             </a>
-          </div>
-
-          <div
-            className="mt-12 flex items-center justify-center md:justify-start gap-6 animate-fade-up"
-            style={{ animationDelay: '0.4s' }}
-          >
-            <div className="flex gap-4">
-              <a
-                href={CONTACT_INFO.linkedin}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:scale-110 hover:shadow-md transition-all duration-300"
-              >
-                <Linkedin className="w-5 h-5" />
-              </a>
-              <a
-                href={CONTACT_INFO.github}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:scale-110 hover:shadow-md transition-all duration-300"
-              >
-                <Github className="w-5 h-5" />
-              </a>
-            </div>
-            <div className="h-8 w-px bg-slate-200 dark:bg-slate-700"></div>
-            <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 text-sm font-mono bg-slate-100/50 dark:bg-slate-800/50 px-3 py-1 rounded-lg">
-              <MapPin
-                className="w-4 h-4 text-blue-600 dark:text-blue-400 animate-bounce"
-                style={{ animationDuration: '3s' }}
-              />
-              {CONTACT_INFO.location}
-            </div>
-          </div>
-        </div>
-
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20">
-          <a
-            href="#education"
-            className="flex flex-col items-center gap-2 text-slate-400 dark:text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors animate-bounce"
-          >
-            <ChevronDown className="w-6 h-6" />
-          </a>
-        </div>
+          ))}
+        </motion.div>
       </div>
+
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 2, duration: 1 }}
+        className="absolute bottom-12 left-1/2 -translate-x-1/2 text-obsidian-accent/50"
+      >
+        <div className="flex flex-col items-center gap-2">
+          <span className="text-[10px] uppercase tracking-[0.2em]">Scroll</span>
+          <div className="h-12 w-[1px] bg-gradient-to-b from-obsidian-accent/0 to-obsidian-accent" />
+        </div>
+      </motion.div>
     </section>
   );
 };
+
+export default Hero;
