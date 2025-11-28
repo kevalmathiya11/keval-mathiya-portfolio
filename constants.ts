@@ -43,14 +43,14 @@ export const PROJECT_DATA: Project[] = [
     title: "Job Board Platform",
     description: "A robust web application for managing job listings with secure authentication and email notifications.",
     tags: ["FastAPI", "PostgreSQL", "SQLAlchemy", "JWT", "Python"],
-    link: "https://github.com",
+    link: "https://github.com/kevalmathiya11/job_board",
     image: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?q=80&w=2072&auto=format&fit=crop"
   },
   {
     title: "GeoInsights",
     description: "Business insights platform using web scraping and sentiment analysis on customer reviews.",
     tags: ["React.js", "FastAPI", "Selenium", "NLP", "Machine Learning"],
-    link: "#",
+    link: "https://github.com/kevalmathiya11/geo-insights",
     image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2070&auto=format&fit=crop"
   },
   {
@@ -82,7 +82,7 @@ export const SKILLS_DATA: SkillCategory[] = [
 ];
 
 export const SOCIAL_LINKS: SocialLink[] = [
-  { platform: "GitHub", url: "https://github.com", icon: "Github" },
+  { platform: "GitHub", url: "https://github.com/kevalmathiya11", icon: "Github" },
   { platform: "LinkedIn", url: "https://www.linkedin.com/in/keval-mathiya-00251b222", icon: "Linkedin" },
   { platform: "Email", url: "mailto:mathiyakeval14@gmail.com", icon: "Mail" }
 ];
